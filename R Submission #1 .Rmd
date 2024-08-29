@@ -1,0 +1,68 @@
+---
+title: 'Submission #1'
+author: "Eric Wang"
+date: "2024-07-27"
+output:
+  pdf_document: default
+  word_document: default
+---
+
+```{r}
+library(tidyverse)
+
+df1 <- read.csv("/Users/wangdeyao/Downloads/QBS103/QBS103_GSE157103_genes.csv")
+df2 <- read.csv("/Users/wangdeyao/Downloads/QBS103/QBS103_GSE157103_series_matrix.csv")
+
+data_long <- df1 %>%
+  filter(X == "ABCA1")%>%
+  gather(key = "Sample", value = "Expression",
+         COVID_01_39y_male_NonICU:NONCOVID_26_36y_male_ICU)
+
+new_merged <- merge(data_long, df2, by.x = "Sample", by.y = "participant_id")%>%
+  select("Sample", "Expression", "age", "sex","icu_status")
+
+head(new_merged)
+
+newTheme <- theme(
+  panel.border = element_blank(), panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black", linewidth = rel(2)),
+  plot.background = element_rect(fill = "white"),
+  panel.background = element_blank(),
+  legend.key = element_rect(fill = 'grey',color = "grey"), 
+  legend.background = element_rect(fill = 'grey'),
+  legend.box.background = element_rect(color = "black"),
+  text = element_text(face="bold",colour = "black"),
+  axis.text = element_text(face="bold",colour = "black"),
+        legend.position = 'bottom')
+
+
+ggplot(new_merged, aes(x = Expression)) +
+  geom_histogram(binwidth = 1, fill = "black", color = "black", alpha = 0.5) +
+  labs(title = "Histogram of Gene Expression foR ABCA1",
+       x = "Expression",
+       y = "Frequency") +
+  newTheme
+```
+
+
+```{r}
+new_merged$age <- as.numeric(new_merged$age)
+ggplot(new_merged, aes(x = age, y = Expression)) +
+  geom_point(color = "black", alpha = 0.7) +
+  scale_y_continuous(breaks = seq(0, 100, by = 10)) +
+  labs(title = "Scatterplot of Gene Expression for ABCA1 vs. Age", 
+       y = "Expression", x = "Age") +
+  newTheme
+```
+
+
+```{r}
+colorpalette <- c("red", "blue", "yellow")
+ggplot(new_merged, aes(x = sex, y = Expression, fill = icu_status))+
+geom_boxplot(alpha = 0.7)+
+labs(title = "Boxplot of Gene Expression for ABCA1 by Sex and ICU Status", 
+     x = "Sex", y = "Expression")+ 
+scale_fill_manual(values = colorpalette)+
+newTheme
+```
